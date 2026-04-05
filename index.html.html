@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MadeOut2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black: #080808;
+      --purple: #6a00f4;
+      --purple-mid: #8b2be2;
+      --purple-light: #c084fc;
+      --purple-glow: rgba(106, 0, 244, 0.45);
+      --white: #f0e8ff;
+      --card-bg: #111018;
+      --border: rgba(139, 43, 226, 0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #3a006f 0%, var(--purple) 50%, #9b00e0 100%);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 80px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 30px var(--purple-glow);
+      border-bottom: 1px solid rgba(192, 132, 252, 0.4);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(192, 132, 252, 0.8), 0 0 40px var(--purple-glow);
+      user-select: none;
+    }
+
+    .logo span {
+      color: var(--purple-light);
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: rgba(240, 232, 255, 0.8);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+      text-shadow: 0 0 12px var(--purple-light);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 220px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(106,0,244,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(155,0,224,0.15) 0%, transparent 60%);
+    }
+
+    .hero-text {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-text h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      letter-spacing: 6px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 0%, var(--purple-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-text p {
+      margin-top: 0.6rem;
+      font-size: 1rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(192, 132, 252, 0.75);
+    }
+
+    /* ── MAIN CONTENT ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+
+    /* ── SECTION TABS ── */
+    .section-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: rgba(240, 232, 255, 0.5);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0.5rem 1.2rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .tab-btn.active {
+      color: var(--white);
+      background: rgba(106, 0, 244, 0.2);
+      border: 1px solid var(--border);
+      text-shadow: 0 0 10px var(--purple-light);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--white);
+    }
+
+    /* ── SECTION ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 4px;
+      color: var(--purple-light);
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      background: rgba(106, 0, 244, 0.04);
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--purple-light);
+      background: rgba(106, 0, 244, 0.1);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .upload-zone p {
+      font-size: 1rem;
+      letter-spacing: 1px;
+      color: rgba(192, 132, 252, 0.7);
+    }
+
+    .upload-zone strong {
+      color: var(--purple-light);
+    }
+
+    /* ── PHOTO GRID ── */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .photo-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+      group: true;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 8px 30px var(--purple-glow);
+      border-color: var(--purple-light);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: filter 0.25s;
+    }
+
+    .photo-card:hover img {
+      filter: brightness(0.7);
+    }
+
+    .photo-card .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(106, 0, 244, 0.85);
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .photo-card:hover .delete-btn {
+      display: flex;
+    }
+
+    .photo-card .delete-btn:hover {
+      background: #c00;
+    }
+
+    .photo-card .photo-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(10,0,20,0.85));
+      padding: 1rem 0.8rem 0.6rem;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      color: var(--purple-light);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .photo-card:hover .photo-label {
+      opacity: 1;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: rgba(192, 132, 252, 0.4);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 10px;
+      box-shadow: 0 0 60px var(--purple-glow);
+      border: 1px solid var(--border);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 2rem;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 2rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .lightbox-close:hover { opacity: 1; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(192, 132, 252, 0.3);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Made<span>Out</span>2</div>
+    <nav>
+      <a href="#" class="active" onclick="switchTab('photos', this)">My Photos</a>
+      <a href="#" onclick="switchTab('games', this)">Games</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Welcome to MadeOut2</h1>
+      <p>Your personal gallery &amp; game archive</p>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- MY PHOTOS SECTION -->
+    <div id="section-photos" class="section active">
+      <div class="section-header">
+        <div class="section-title">📷 My Photos</div>
+      </div>
+
+      <div class="upload-zone" id="photos-zone">
+        <input type="file" accept="image/*" multiple onchange="handleUpload(event, 'photos')"/>
+        <span class="upload-icon">🖼️</span>
+        <p><strong>Click to upload</strong> or drag &amp; drop your photos here</p>
+        <p style="margin-top:0.4rem; font-size:0.85rem;">PNG, JPG, GIF, WEBP supported</p>
+      </div>
+
+      <div class="photo-grid" id="photos-grid"></div>
+      <div class="empty-state" id="photos-empty">
+        <span class="empty-icon">📂</span>
+        No photos yet. Upload some above!
+      </div>
+    </div>
+
+    <!-- GAMES SECTION -->
+    <div id="section-games" class="section">
+      <div class="section-header">
+        <div class="section-title">🎮 Game Photos</div>
+      </div>
+
+      <div class="upload-zone" id="games-zone">
+        <input type="file" accept="image/*" multiple onchange="handleUpload(event, 'games')"/>
+        <span class="upload-icon">🕹️</span>
+        <p><strong>Click to upload</strong> or drag &amp; drop your game screenshots here</p>
+        <p style="margin-top:0.4rem; font-size:0.85rem;">PNG, JPG, GIF, WEBP supported</p>
+      </div>
+
+      <div class="photo-grid" id="games-grid"></div>
+      <div class="empty-state" id="games-empty">
+        <span class="empty-icon">🎮</span>
+        No game photos yet. Upload some above!
+      </div>
+    </div>
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt=""/>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>© 2026 MadeOut2 · All Rights Reserved</footer>
+
+  <script>
+    const galleries = { photos: [], games: [] };
+
+    function switchTab(tab, el) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('section-' + tab).classList.add('active');
+      el.classList.add('active');
+    }
+
+    function handleUpload(event, gallery) {
+      const files = Array.from(event.target.files);
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          galleries[gallery].push({ src: e.target.result, name: file.name });
+          renderGallery(gallery);
+        };
+        reader.readAsDataURL(file);
+      });
+      event.target.value = '';
+    }
+
+    function renderGallery(gallery) {
+      const grid = document.getElementById(gallery + '-grid');
+      const empty = document.getElementById(gallery + '-empty');
+      const items = galleries[gallery];
+
+      if (items.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      grid.innerHTML = items.map((item, i) => `
+        <div class="photo-card" onclick="openLightbox('${gallery}', ${i})">
+          <img src="${item.src}" alt="${item.name}"/>
+          <div class="photo-label">${item.name}</div>
+          <button class="delete-btn" onclick="deletePhoto(event, '${gallery}', ${i})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function deletePhoto(event, gallery, index) {
+      event.stopPropagation();
+      galleries[gallery].splice(index, 1);
+      renderGallery(gallery);
+    }
+
+    function openLightbox(gallery, index) {
+      const item = galleries[gallery][index];
+      document.getElementById('lightbox-img').src = item.src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    // Drag & drop styling
+    ['photos-zone', 'games-zone'].forEach(id => {
+      const zone = document.getElementById(id);
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', () => zone.classList.remove('drag-over'));
+    });
+
+    // Init empty states
+    renderGallery('photos');
+    renderGallery('games');
+  </script>
+</body>
+</html>
