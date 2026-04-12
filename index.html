@@ -1,527 +1,1082 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MadeOut2</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --black: #080808;
-      --purple: #6a00f4;
-      --purple-mid: #8b2be2;
-      --purple-light: #c084fc;
-      --purple-glow: rgba(106, 0, 244, 0.45);
-      --white: #f0e8ff;
-      --card-bg: #111018;
-      --border: rgba(139, 43, 226, 0.3);
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>X & O — Tic Tac Toe</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --x-color: #ff4d6d;
+    --o-color: #00f5d4;
+    --bg: #060610;
+    --panel: #0d0d20;
+    --border: #1a1a3a;
+    --text: #e8e8ff;
+    --dim: #5a5a8a;
+    --glow-x: 0 0 20px #ff4d6d88;
+    --glow-o: 0 0 20px #00f5d488;
+  }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      background: var(--black);
-      color: var(--white);
-      font-family: 'Rajdhani', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
 
-    /* ── HEADER ── */
-    header {
-      background: linear-gradient(135deg, #3a006f 0%, var(--purple) 50%, #9b00e0 100%);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 80px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 30px var(--purple-glow);
-      border-bottom: 1px solid rgba(192, 132, 252, 0.4);
-    }
+  /* ===================== PAGES ===================== */
+  .page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .page.active {
+    opacity: 1;
+    pointer-events: all;
+  }
 
-    .logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.4rem;
-      letter-spacing: 4px;
-      color: #fff;
-      text-shadow: 0 0 20px rgba(192, 132, 252, 0.8), 0 0 40px var(--purple-glow);
-      user-select: none;
-    }
+  /* ===================== PAGE 1 — LANDING ===================== */
+  #page-landing {
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
 
-    .logo span {
-      color: var(--purple-light);
-    }
+  /* Background board + players */
+  .bg-scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: blur(3px) brightness(0.35);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    nav {
-      display: flex;
-      gap: 2rem;
-    }
+  .bg-board {
+    position: relative;
+    width: 420px;
+    height: 420px;
+    flex-shrink: 0;
+  }
 
-    nav a {
-      color: rgba(240, 232, 255, 0.8);
-      text-decoration: none;
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      transition: color 0.2s, text-shadow 0.2s;
-    }
+  .bg-board-lines {
+    position: absolute;
+    inset: 0;
+  }
+  .bg-board-lines::before,
+  .bg-board-lines::after {
+    content: '';
+    position: absolute;
+    background: var(--dim);
+  }
+  /* Vertical lines */
+  .bg-board-lines::before {
+    width: 4px;
+    height: 100%;
+    top: 0;
+    left: 33.33%;
+    box-shadow: 56px 0 0 var(--dim);
+  }
+  /* Horizontal lines */
+  .bg-board-lines::after {
+    height: 4px;
+    width: 100%;
+    top: 33.33%;
+    left: 0;
+    box-shadow: 0 56px 0 var(--dim);
+  }
 
-    nav a:hover, nav a.active {
-      color: #fff;
-      text-shadow: 0 0 12px var(--purple-light);
-    }
+  .bg-cells {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
 
-    /* ── HERO ── */
-    .hero {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 220px;
-      overflow: hidden;
-      border-bottom: 1px solid var(--border);
-    }
+  .bg-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+  }
+  .bg-cell.x { color: var(--x-color); }
+  .bg-cell.o { color: var(--o-color); }
 
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 30% 50%, rgba(106,0,244,0.25) 0%, transparent 60%),
-        radial-gradient(ellipse at 70% 50%, rgba(155,0,224,0.15) 0%, transparent 60%);
-    }
+  /* SVG players */
+  .bg-players {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 40px;
+  }
 
-    .hero-text {
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
+  .player-figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
 
-    .hero-text h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.5rem, 8vw, 5rem);
-      letter-spacing: 6px;
-      line-height: 1;
-      background: linear-gradient(135deg, #fff 0%, var(--purple-light) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+  /* ---- Inline SVG person figures ---- */
+  .player-svg {
+    width: 110px;
+    height: 220px;
+  }
 
-    .hero-text p {
-      margin-top: 0.6rem;
-      font-size: 1rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: rgba(192, 132, 252, 0.75);
-    }
+  /* ===================== LANDING CONTENT ===================== */
+  .landing-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 28px;
+  }
 
-    /* ── MAIN CONTENT ── */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 3rem 2rem 5rem;
-    }
+  .landing-eyebrow {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
 
-    /* ── SECTION TABS ── */
-    .section-tabs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
-    }
+  .landing-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 14vw, 140px);
+    line-height: 0.9;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--x-color) 0%, #fff 50%, var(--o-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px #ff4d6d44);
+  }
 
-    .tab-btn {
-      background: none;
-      border: none;
-      color: rgba(240, 232, 255, 0.5);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      cursor: pointer;
-      padding: 0.5rem 1.2rem;
-      border-radius: 4px;
-      transition: all 0.2s;
-      position: relative;
-    }
+  .landing-subtitle {
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
 
-    .tab-btn.active {
-      color: var(--white);
-      background: rgba(106, 0, 244, 0.2);
-      border: 1px solid var(--border);
-      text-shadow: 0 0 10px var(--purple-light);
-    }
+  .btn-play {
+    margin-top: 16px;
+    padding: 18px 64px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 4px;
+    color: var(--bg);
+    background: linear-gradient(90deg, var(--x-color), var(--o-color));
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 30px #ff4d6d55, 0 0 60px #00f5d422;
+  }
+  .btn-play::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .btn-play:hover::before { transform: translateX(0); }
+  .btn-play:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 50px #ff4d6d88, 0 0 80px #00f5d455;
+  }
+  .btn-play:active { transform: scale(0.97); }
 
-    .tab-btn:hover:not(.active) {
-      color: var(--white);
-    }
+  .landing-dots {
+    display: flex;
+    gap: 8px;
+  }
+  .landing-dots span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .landing-dots span:nth-child(2) { background: var(--x-color); }
 
-    /* ── SECTION ── */
-    .section { display: none; }
-    .section.active { display: block; }
+  /* ===================== PAGE 2 — SETUP ===================== */
+  #page-setup {
+    flex-direction: column;
+    gap: 40px;
+  }
 
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
+  .setup-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px 56px;
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .setup-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--x-color), var(--o-color));
+  }
 
-    .section-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 4px;
-      color: var(--purple-light);
-    }
+  .setup-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 3px;
+    text-align: center;
+  }
 
-    /* ── UPLOAD ZONE ── */
-    .upload-zone {
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      padding: 2.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-      background: rgba(106, 0, 244, 0.04);
-      margin-bottom: 2.5rem;
-      position: relative;
-    }
+  .setup-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--purple-light);
-      background: rgba(106, 0, 244, 0.1);
-    }
+  .setup-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
 
-    .upload-zone input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
+  .mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 
-    .upload-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.8rem;
-      display: block;
-    }
+  .mode-btn {
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .mode-btn .mode-icon {
+    font-size: 24px;
+    font-family: 'Bebas Neue', sans-serif;
+  }
+  .mode-btn:hover {
+    border-color: var(--o-color);
+    color: var(--text);
+  }
+  .mode-btn.selected {
+    border-color: var(--o-color);
+    background: rgba(0,245,212,0.08);
+    color: var(--o-color);
+    box-shadow: var(--glow-o);
+  }
 
-    .upload-zone p {
-      font-size: 1rem;
-      letter-spacing: 1px;
-      color: rgba(192, 132, 252, 0.7);
-    }
+  .name-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-    .upload-zone strong {
-      color: var(--purple-light);
-    }
+  .name-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-    /* ── PHOTO GRID ── */
-    .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.2rem;
-    }
+  .name-symbol {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .name-symbol.x { color: var(--x-color); text-shadow: var(--glow-x); }
+  .name-symbol.o { color: var(--o-color); text-shadow: var(--glow-o); }
 
-    .photo-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      aspect-ratio: 1 / 1;
-      cursor: pointer;
-      transition: transform 0.25s, box-shadow 0.25s;
-      group: true;
-    }
+  .name-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--o-color); }
+  .name-input::placeholder { color: var(--dim); }
 
-    .photo-card:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 8px 30px var(--purple-glow);
-      border-color: var(--purple-light);
-    }
+  .btn-start {
+    padding: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--bg);
+    background: linear-gradient(90deg, var(--x-color), var(--o-color));
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 24px #ff4d6d44;
+  }
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 30px #ff4d6d66;
+  }
 
-    .photo-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: filter 0.25s;
-    }
+  .btn-back {
+    background: transparent;
+    border: none;
+    color: var(--dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: color 0.2s;
+  }
+  .btn-back:hover { color: var(--text); }
 
-    .photo-card:hover img {
-      filter: brightness(0.7);
-    }
+  /* ===================== PAGE 3 — GAME ===================== */
+  #page-game {
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .photo-card .delete-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(106, 0, 244, 0.85);
-      border: none;
-      color: white;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 480px;
+  }
 
-    .photo-card:hover .delete-btn {
-      display: flex;
-    }
+  .player-tag {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+    min-width: 130px;
+  }
+  .player-tag.turn-x {
+    border-color: var(--x-color);
+    background: rgba(255,77,109,0.08);
+    box-shadow: var(--glow-x);
+  }
+  .player-tag.turn-o {
+    border-color: var(--o-color);
+    background: rgba(0,245,212,0.08);
+    box-shadow: var(--glow-o);
+  }
 
-    .photo-card .delete-btn:hover {
-      background: #c00;
-    }
+  .player-tag-symbol {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+  }
+  .player-tag.x-side .player-tag-symbol { color: var(--x-color); }
+  .player-tag.o-side .player-tag-symbol { color: var(--o-color); }
 
-    .photo-card .photo-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(10,0,20,0.85));
-      padding: 1rem 0.8rem 0.6rem;
-      font-size: 0.82rem;
-      letter-spacing: 1px;
-      color: var(--purple-light);
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
+  .player-tag-name {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    .photo-card:hover .photo-label {
-      opacity: 1;
-    }
+  .player-tag-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--text);
+  }
 
-    /* ── EMPTY STATE ── */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: rgba(192, 132, 252, 0.4);
-      font-size: 1rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
+  .turn-indicator {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
 
-    .empty-state .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
+  .turn-arrow {
+    font-size: 24px;
+    transition: color 0.3s;
+  }
+  .turn-arrow.x { color: var(--x-color); }
+  .turn-arrow.o { color: var(--o-color); }
 
-    /* ── LIGHTBOX ── */
-    .lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.92);
-      z-index: 999;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
+  /* Board */
+  .board-wrapper {
+    position: relative;
+  }
 
-    .lightbox.open {
-      display: flex;
-    }
+  .game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 140px);
+    grid-template-rows: repeat(3, 140px);
+    gap: 0;
+    position: relative;
+  }
 
-    .lightbox img {
-      max-width: 90vw;
-      max-height: 80vh;
-      border-radius: 10px;
-      box-shadow: 0 0 60px var(--purple-glow);
-      border: 1px solid var(--border);
-    }
+  /* Board lines via pseudo-elements on wrapper */
+  .board-lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .board-lines::before,
+  .board-lines::after {
+    content: '';
+    position: absolute;
+    background: var(--border);
+  }
+  /* Vertical */
+  .board-lines::before {
+    width: 2px;
+    height: 420px;
+    top: 0;
+    left: 140px;
+    box-shadow: 140px 0 0 var(--border);
+  }
+  /* Horizontal */
+  .board-lines::after {
+    height: 2px;
+    width: 420px;
+    top: 140px;
+    left: 0;
+    box-shadow: 0 140px 0 var(--border);
+  }
 
-    .lightbox-close {
-      position: absolute;
-      top: 1.5rem;
-      right: 2rem;
-      background: none;
-      border: none;
-      color: var(--white);
-      font-size: 2rem;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    }
-    .lightbox-close:hover { opacity: 1; }
+  .cell {
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: background 0.15s;
+  }
+  .cell:hover:not(.taken) {
+    background: rgba(255,255,255,0.03);
+  }
+  .cell.taken { cursor: default; }
 
-    /* ── FOOTER ── */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: rgba(192, 132, 252, 0.3);
-      font-size: 0.8rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      border-top: 1px solid var(--border);
-    }
+  .cell-symbol {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.3) rotate(-15deg);
+    transition: opacity 0.2s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .cell-symbol.show {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  .cell-symbol.x {
+    color: var(--x-color);
+    text-shadow: var(--glow-x);
+  }
+  .cell-symbol.o {
+    color: var(--o-color);
+    text-shadow: var(--glow-o);
+  }
 
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--black); }
-    ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 3px; }
-  </style>
+  /* Win line overlay */
+  .win-line-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 420px; height: 420px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .win-line-path {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  .win-line-path.draw {
+    stroke-dashoffset: 0;
+  }
+
+  /* Result overlay */
+  .result-overlay {
+    position: absolute;
+    inset: -20px;
+    background: rgba(6,6,16,0.88);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    z-index: 20;
+    backdrop-filter: blur(4px);
+  }
+  .result-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .result-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 4px;
+    text-align: center;
+    line-height: 1;
+  }
+  .result-text.x-wins { color: var(--x-color); text-shadow: var(--glow-x); }
+  .result-text.o-wins { color: var(--o-color); text-shadow: var(--glow-o); }
+  .result-text.draw { color: var(--text); }
+
+  .result-sub {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-rematch, .btn-menu {
+    padding: 12px 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-rematch {
+    background: linear-gradient(90deg, var(--x-color), var(--o-color));
+    border: none;
+    color: var(--bg);
+    box-shadow: 0 0 20px #ff4d6d44;
+  }
+  .btn-rematch:hover { transform: translateY(-2px); box-shadow: 0 4px 30px #ff4d6d66; }
+
+  .btn-menu {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+  }
+  .btn-menu:hover { border-color: var(--text); color: var(--text); }
+
+  /* Floating particles */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-up linear infinite;
+  }
+  @keyframes float-up {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { transform: translateY(-10vh) translateX(30px); opacity: 0; }
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 500px) {
+    .game-board { grid-template-columns: repeat(3,100px); grid-template-rows: repeat(3,100px); }
+    .cell { width: 100px; height: 100px; }
+    .cell-symbol { font-size: 58px; }
+    .board-lines::before { height: 300px; left: 100px; box-shadow: 100px 0 0 var(--border); }
+    .board-lines::after { width: 300px; top: 100px; box-shadow: 0 100px 0 var(--border); }
+    .win-line-svg { width: 300px; height: 300px; }
+    .game-header { width: 340px; }
+    .setup-card { width: 90vw; padding: 36px 28px; }
+  }
+</style>
 </head>
 <body>
+<h1>Made by abdulrehman</h1>
+<!-- Particles -->
+<div class="particles" id="particles"></div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">Made<span>Out</span>2</div>
-    <nav>
-      <a href="#" class="active" onclick="switchTab('photos', this)">My Photos</a>
-      <a href="#" onclick="switchTab('games', this)">Games</a>
-    </nav>
-  </header>
+<!-- ===================== PAGE 1: LANDING ===================== -->
+<div class="page active" id="page-landing">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-text">
-      <h1>Welcome to MadeOut2</h1>
-      <p>Your personal gallery &amp; game archive</p>
-    </div>
-  </div>
+  <!-- Blurred background scene -->
+  <div class="bg-scene">
+    <div style="position:relative; width:700px; height:520px; display:flex; align-items:center; justify-content:center;">
 
-  <!-- MAIN -->
-  <main>
-
-    <!-- MY PHOTOS SECTION -->
-    <div id="section-photos" class="section active">
-      <div class="section-header">
-        <div class="section-title">📷 My Photos</div>
+      <!-- Two player SVG figures -->
+      <div style="position:absolute; left:20px; bottom:0; display:flex; flex-direction:column; align-items:center;">
+        <!-- Player 1 (X) — leaning forward, arm out -->
+        <svg viewBox="0 0 110 220" width="110" height="220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- body -->
+          <ellipse cx="55" cy="34" rx="22" ry="22" fill="#ff4d6d"/>
+          <rect x="32" y="56" width="46" height="72" rx="10" fill="#ff4d6d" opacity="0.85"/>
+          <!-- left arm (pointing at board) -->
+          <line x1="32" y1="70" x2="-2" y2="95" stroke="#ff4d6d" stroke-width="12" stroke-linecap="round"/>
+          <!-- right arm down -->
+          <line x1="78" y1="70" x2="90" y2="105" stroke="#ff4d6d" stroke-width="12" stroke-linecap="round"/>
+          <!-- legs -->
+          <line x1="45" y1="128" x2="38" y2="200" stroke="#ff4d6d" stroke-width="13" stroke-linecap="round"/>
+          <line x1="65" y1="128" x2="72" y2="200" stroke="#ff4d6d" stroke-width="13" stroke-linecap="round"/>
+          <!-- face detail -->
+          <circle cx="46" cy="28" r="4" fill="#060610" opacity="0.6"/>
+          <circle cx="64" cy="28" r="4" fill="#060610" opacity="0.6"/>
+          <path d="M46 42 Q55 50 64 42" stroke="#060610" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+        </svg>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:18px; color:#ff4d6d; letter-spacing:3px; margin-top:6px;">PLAYER X</div>
       </div>
 
-      <div class="upload-zone" id="photos-zone">
-        <input type="file" accept="image/*" multiple onchange="handleUpload(event, 'photos')"/>
-        <span class="upload-icon">🖼️</span>
-        <p><strong>Click to upload</strong> or drag &amp; drop your photos here</p>
-        <p style="margin-top:0.4rem; font-size:0.85rem;">PNG, JPG, GIF, WEBP supported</p>
-      </div>
-
-      <div class="photo-grid" id="photos-grid"></div>
-      <div class="empty-state" id="photos-empty">
-        <span class="empty-icon">📂</span>
-        No photos yet. Upload some above!
-      </div>
-    </div>
-
-    <!-- GAMES SECTION -->
-    <div id="section-games" class="section">
-      <div class="section-header">
-        <div class="section-title">🎮 Game Photos</div>
-      </div>
-
-      <div class="upload-zone" id="games-zone">
-        <input type="file" accept="image/*" multiple onchange="handleUpload(event, 'games')"/>
-        <span class="upload-icon">🕹️</span>
-        <p><strong>Click to upload</strong> or drag &amp; drop your game screenshots here</p>
-        <p style="margin-top:0.4rem; font-size:0.85rem;">PNG, JPG, GIF, WEBP supported</p>
-      </div>
-
-      <div class="photo-grid" id="games-grid"></div>
-      <div class="empty-state" id="games-empty">
-        <span class="empty-icon">🎮</span>
-        No game photos yet. Upload some above!
-      </div>
-    </div>
-  </main>
-
-  <!-- LIGHTBOX -->
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt=""/>
-  </div>
-
-  <!-- FOOTER -->
-  <footer>© 2026 MadeOut2 · All Rights Reserved</footer>
-
-  <script>
-    const galleries = { photos: [], games: [] };
-
-    function switchTab(tab, el) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-      document.getElementById('section-' + tab).classList.add('active');
-      el.classList.add('active');
-    }
-
-    function handleUpload(event, gallery) {
-      const files = Array.from(event.target.files);
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          galleries[gallery].push({ src: e.target.result, name: file.name });
-          renderGallery(gallery);
-        };
-        reader.readAsDataURL(file);
-      });
-      event.target.value = '';
-    }
-
-    function renderGallery(gallery) {
-      const grid = document.getElementById(gallery + '-grid');
-      const empty = document.getElementById(gallery + '-empty');
-      const items = galleries[gallery];
-
-      if (items.length === 0) {
-        grid.innerHTML = '';
-        empty.style.display = 'block';
-        return;
-      }
-      empty.style.display = 'none';
-      grid.innerHTML = items.map((item, i) => `
-        <div class="photo-card" onclick="openLightbox('${gallery}', ${i})">
-          <img src="${item.src}" alt="${item.name}"/>
-          <div class="photo-label">${item.name}</div>
-          <button class="delete-btn" onclick="deletePhoto(event, '${gallery}', ${i})">✕</button>
+      <!-- Board in middle -->
+      <div class="bg-board">
+        <div class="bg-board-lines"></div>
+        <div class="bg-cells">
+          <div class="bg-cell x">X</div>
+          <div class="bg-cell o">O</div>
+          <div class="bg-cell x">X</div>
+          <div class="bg-cell"></div>
+          <div class="bg-cell o">O</div>
+          <div class="bg-cell"></div>
+          <div class="bg-cell x">X</div>
+          <div class="bg-cell"></div>
+          <div class="bg-cell o">O</div>
         </div>
-      `).join('');
+      </div>
+
+      <!-- Player 2 (O) — arms raised in celebration -->
+      <div style="position:absolute; right:20px; bottom:0; display:flex; flex-direction:column; align-items:center;">
+        <svg viewBox="0 0 110 220" width="110" height="220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- body -->
+          <ellipse cx="55" cy="34" rx="22" ry="22" fill="#00f5d4"/>
+          <rect x="32" y="56" width="46" height="72" rx="10" fill="#00f5d4" opacity="0.85"/>
+          <!-- left arm raised -->
+          <line x1="32" y1="66" x2="4" y2="30" stroke="#00f5d4" stroke-width="12" stroke-linecap="round"/>
+          <!-- right arm raised -->
+          <line x1="78" y1="66" x2="106" y2="30" stroke="#00f5d4" stroke-width="12" stroke-linecap="round"/>
+          <!-- legs -->
+          <line x1="45" y1="128" x2="35" y2="200" stroke="#00f5d4" stroke-width="13" stroke-linecap="round"/>
+          <line x1="65" y1="128" x2="75" y2="200" stroke="#00f5d4" stroke-width="13" stroke-linecap="round"/>
+          <!-- face: excited -->
+          <circle cx="46" cy="28" r="4" fill="#060610" opacity="0.6"/>
+          <circle cx="64" cy="28" r="4" fill="#060610" opacity="0.6"/>
+          <ellipse cx="55" cy="44" rx="8" ry="5" fill="#060610" opacity="0.5"/>
+        </svg>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:18px; color:#00f5d4; letter-spacing:3px; margin-top:6px;">PLAYER O</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Landing UI -->
+  <div class="landing-content">
+    <div class="landing-eyebrow">The Ultimate Showdown</div>
+    <div class="landing-title">X &amp; O</div>
+    <div class="landing-subtitle">Tic · Tac · Toe</div>
+    <div class="landing-dots">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button class="btn-play" onclick="showPage('page-setup')">PLAY NOW</button>
+  </div>
+
+</div>
+
+<!-- ===================== PAGE 2: SETUP ===================== -->
+<div class="page" id="page-setup">
+  <div class="setup-card">
+    <div class="setup-title">New Game</div>
+
+    <div class="setup-section">
+      <div class="setup-label">Game Mode</div>
+      <div class="mode-buttons">
+        <button class="mode-btn selected" id="mode-2p" onclick="selectMode('2p')">
+          <span class="mode-icon">👥</span>
+          <span>2 Players</span>
+        </button>
+        <button class="mode-btn" id="mode-ai" onclick="selectMode('ai')">
+          <span class="mode-icon">🤖</span>
+          <span>vs CPU</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="setup-section" id="names-section">
+      <div class="setup-label">Player Names</div>
+      <div class="name-inputs">
+        <div class="name-input-group">
+          <span class="name-symbol x">X</span>
+          <input class="name-input" id="name-x" type="text" placeholder="Player X" maxlength="16" />
+        </div>
+        <div class="name-input-group" id="name-o-row">
+          <span class="name-symbol o">O</span>
+          <input class="name-input" id="name-o" type="text" placeholder="Player O" maxlength="16" />
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-start" onclick="startGame()">START GAME →</button>
+    <button class="btn-back" onclick="showPage('page-landing')">← BACK</button>
+  </div>
+</div>
+
+<!-- ===================== PAGE 3: GAME ===================== -->
+<div class="page" id="page-game">
+
+  <div class="game-header">
+    <div class="player-tag x-side" id="tag-x">
+      <div class="player-tag-symbol">X</div>
+      <div class="player-tag-name" id="label-x">Player X</div>
+      <div class="player-tag-score" id="score-x">0</div>
+    </div>
+
+    <div class="turn-indicator">
+      <div class="turn-arrow x" id="turn-arrow">▶</div>
+      <div id="turn-label">TURN</div>
+    </div>
+
+    <div class="player-tag o-side" id="tag-o">
+      <div class="player-tag-symbol">O</div>
+      <div class="player-tag-name" id="label-o">Player O</div>
+      <div class="player-tag-score" id="score-o">0</div>
+    </div>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="board-lines"></div>
+    <div class="game-board" id="game-board"></div>
+
+    <!-- Win line SVG -->
+    <svg class="win-line-svg" id="win-svg" viewBox="0 0 420 420">
+      <line id="win-line" class="win-line-path" x1="0" y1="0" x2="0" y2="0"
+        stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    </svg>
+
+    <!-- Result overlay -->
+    <div class="result-overlay" id="result-overlay">
+      <div class="result-text" id="result-text">X WINS!</div>
+      <div class="result-sub" id="result-sub">Well played</div>
+      <div class="result-actions">
+        <button class="btn-rematch" onclick="rematch()">REMATCH</button>
+        <button class="btn-menu" onclick="goMenu()">MENU</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===================== STATE =====================
+let gameMode = '2p';
+let currentPlayer = 'X';
+let board = Array(9).fill(null);
+let scores = { X: 0, O: 0 };
+let gameActive = true;
+let aiEnabled = false;
+
+const WIN_COMBOS = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+const WIN_LINES = {
+  '012': [[20,70],[400,70]], '345': [[20,210],[400,210]], '678': [[20,350],[400,350]],
+  '036': [[70,20],[70,400]], '147': [[210,20],[210,400]], '258': [[350,20],[350,400]],
+  '048': [[20,20],[400,400]], '246': [[400,20],[20,400]]
+};
+
+// ===================== NAVIGATION =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===================== SETUP =====================
+function selectMode(mode) {
+  gameMode = mode;
+  document.getElementById('mode-2p').classList.toggle('selected', mode === '2p');
+  document.getElementById('mode-ai').classList.toggle('selected', mode === 'ai');
+  const oRow = document.getElementById('name-o-row');
+  if (mode === 'ai') {
+    oRow.querySelector('input').value = 'CPU';
+    oRow.querySelector('input').disabled = true;
+    oRow.style.opacity = '0.5';
+  } else {
+    oRow.querySelector('input').value = '';
+    oRow.querySelector('input').disabled = false;
+    oRow.style.opacity = '1';
+  }
+}
+
+function startGame() {
+  const nameX = document.getElementById('name-x').value.trim() || 'Player X';
+  const nameO = gameMode === 'ai' ? 'CPU' : (document.getElementById('name-o').value.trim() || 'Player O');
+  aiEnabled = gameMode === 'ai';
+
+  document.getElementById('label-x').textContent = nameX;
+  document.getElementById('label-o').textContent = nameO;
+  scores = { X: 0, O: 0 };
+  updateScoreDisplay();
+
+  showPage('page-game');
+  resetBoard();
+}
+
+// ===================== GAME =====================
+function resetBoard() {
+  board = Array(9).fill(null);
+  currentPlayer = 'X';
+  gameActive = true;
+
+  // Clear win line
+  const wl = document.getElementById('win-line');
+  wl.classList.remove('draw');
+  wl.setAttribute('x1','0'); wl.setAttribute('y1','0');
+  wl.setAttribute('x2','0'); wl.setAttribute('y2','0');
+
+  document.getElementById('result-overlay').classList.remove('show');
+  renderBoard();
+  updateTurnUI();
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById('game-board');
+  boardEl.innerHTML = '';
+  board.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (val ? ' taken' : '');
+    cell.onclick = () => handleClick(i);
+    if (val) {
+      const sym = document.createElement('div');
+      sym.className = 'cell-symbol ' + val.toLowerCase() + ' show';
+      sym.textContent = val;
+      cell.appendChild(sym);
     }
+    boardEl.appendChild(cell);
+  });
+}
 
-    function deletePhoto(event, gallery, index) {
-      event.stopPropagation();
-      galleries[gallery].splice(index, 1);
-      renderGallery(gallery);
-    }
+function handleClick(i) {
+  if (!gameActive || board[i]) return;
+  placeMove(i, currentPlayer);
+}
 
-    function openLightbox(gallery, index) {
-      const item = galleries[gallery][index];
-      document.getElementById('lightbox-img').src = item.src;
-      document.getElementById('lightbox').classList.add('open');
-    }
+function placeMove(i, player) {
+  board[i] = player;
+  renderBoard();
 
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('open');
-    }
+  const result = checkWin();
+  if (result) {
+    endGame(result);
+    return;
+  }
+  if (board.every(Boolean)) {
+    endGame('draw');
+    return;
+  }
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeLightbox();
-    });
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  updateTurnUI();
 
-    // Drag & drop styling
-    ['photos-zone', 'games-zone'].forEach(id => {
-      const zone = document.getElementById(id);
-      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-      zone.addEventListener('drop', () => zone.classList.remove('drag-over'));
-    });
+  if (aiEnabled && currentPlayer === 'O' && gameActive) {
+    setTimeout(aiMove, 480);
+  }
+}
 
-    // Init empty states
-    renderGallery('photos');
-    renderGallery('games');
-  </script>
+function aiMove() {
+  const best = getBestMove();
+  if (best !== null) placeMove(best, 'O');
+}
+
+function getBestMove() {
+  // Try to win
+  for (const combo of WIN_COMBOS) {
+    const [a,b,c] = combo;
+    const vals = [board[a],board[b],board[c]];
+    if (vals.filter(v=>v==='O').length===2 && vals.includes(null))
+      return combo[vals.indexOf(null)];
+  }
+  // Block X
+  for (const combo of WIN_COMBOS) {
+    const [a,b,c] = combo;
+    const vals = [board[a],board[b],board[c]];
+    if (vals.filter(v=>v==='X').length===2 && vals.includes(null))
+      return combo[vals.indexOf(null)];
+  }
+  // Center
+  if (!board[4]) return 4;
+  // Corner
+  for (const c of [0,2,6,8]) if (!board[c]) return c;
+  // Any
+  return board.findIndex(v=>!v);
+}
+
+function checkWin() {
+  for (const combo of WIN_COMBOS) {
+    const [a,b,c] = combo;
+    if (board[a] && board[a] === board[b] && board[b] === board[c])
+      return { winner: board[a], combo };
+  }
+  return null;
+}
+
+function endGame(result) {
+  gameActive = false;
+  const overlay = document.getElementById('result-overlay');
+  const rt = document.getElementById('result-text');
+  const rs = document.getElementById('result-sub');
+
+  if (result === 'draw') {
+    rt.textContent = "DRAW!";
+    rt.className = 'result-text draw';
+    rs.textContent = 'Great minds think alike';
+  } else {
+    const w = result.winner;
+    const name = w === 'X'
+      ? document.getElementById('label-x').textContent
+      : document.getElementById('label-o').textContent;
+
+    rt.textContent = name.toUpperCase() + ' WINS!';
+    rt.className = 'result-text ' + (w === 'X' ? 'x-wins' : 'o-wins');
+    rs.textContent = w === 'X' ? '🔥 Flawless victory' : '✨ Well played';
+    scores[w]++;
+    updateScoreDisplay();
+
+    // Draw win line
+    drawWinLine(result.combo);
+  }
+
+  setTimeout(() => overlay.classList.add('show'), 500);
+}
+
+function drawWinLine(combo) {
+  const key = combo.slice().sort().join('');
+  const coords = WIN_LINES[key];
+  if (!coords) return;
+  const wl = document.getElementById('win-line');
+  const w = result => result.winner === 'X' ? '#ff4d6d' : '#00f5d4';
+  // Determine color from current board
+  const winnerColor = board[combo[0]] === 'X' ? '#ff4d6d' : '#00f5d4';
+  wl.setAttribute('stroke', winnerColor);
+  wl.setAttribute('x1', coords[0][0]);
+  wl.setAttribute('y1', coords[0][1]);
+  wl.setAttribute('x2', coords[1][0]);
+  wl.setAttribute('y2', coords[1][1]);
+  requestAnimationFrame(() => wl.classList.add('draw'));
+}
+
+function updateTurnUI() {
+  const arrow = document.getElementById('turn-arrow');
+  const tagX = document.getElementById('tag-x');
+  const tagO = document.getElementById('tag-o');
+
+  arrow.className = 'turn-arrow ' + currentPlayer.toLowerCase();
+  arrow.textContent = currentPlayer === 'X' ? '◀ X' : 'O ▶';
+
+  tagX.className = 'player-tag x-side' + (currentPlayer === 'X' ? ' turn-x' : '');
+  tagO.className = 'player-tag o-side' + (currentPlayer === 'O' ? ' turn-o' : '');
+}
+
+function updateScoreDisplay() {
+  document.getElementById('score-x').textContent = scores.X;
+  document.getElementById('score-o').textContent = scores.O;
+}
+
+function rematch() { resetBoard(); }
+function goMenu() {
+  scores = { X: 0, O: 0 };
+  updateScoreDisplay();
+  showPage('page-landing');
+}
+
+// ===================== PARTICLES =====================
+(function spawnParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#ff4d6d','#00f5d4','#ffffff'];
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (8 + Math.random() * 14) + 's';
+    p.style.animationDelay = (Math.random() * 12) + 's';
+    p.style.width = p.style.height = (Math.random() * 2 + 1) + 'px';
+    container.appendChild(p);
+  }
+})();
+</script>
 </body>
 </html>
